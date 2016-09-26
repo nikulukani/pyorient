@@ -450,9 +450,11 @@ class Query(object):
 
     def build_wheres(self, params):
         kw_filters = params.get('kw_filters')
-        kw_where = [u' and '.join(u'{0}={1}'
-            .format(PropertyEncoder.encode_name(k), PropertyEncoder.encode_value(v))
-                for k,v in kw_filters.items())] if kw_filters else []
+        kw_where = [u' and '.join(u'{0} in {1}'
+                                  .format(PropertyEncoder.encode_name(k), PropertyEncoder.encode_value(v)) if isinstance(v,list)
+                                          else u'{0}={1}'
+                                 .format(PropertyEncoder.encode_name(k), PropertyEncoder.encode_value(v))
+                                  for k,v in kw_filters.items())] if kw_filters else []
 
         filter_exp = params.get('filter')
         exp_where = [self.filter_string(filter_exp)] if filter_exp else []
