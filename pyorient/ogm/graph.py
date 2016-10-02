@@ -362,7 +362,8 @@ class Graph(object):
         """
         for cls in registry.values():
             self.create_class(cls)
-
+        self.client.update_properties()
+        
     def drop_all(self, registry):
         """Drop all registry classes from database.
 
