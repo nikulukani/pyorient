@@ -3,7 +3,7 @@ set -e
 
 PARENT_DIR=$(dirname $(cd "$(dirname "$0")"; pwd))
 CI_DIR="$PARENT_DIR/ci/environment"
-DEFAULT_ORIENT_VERSION="2.1.5"
+DEFAULT_ORIENT_VERSION="2.2.33"
 
 # launch simple instance in debug mode with shell hang up
 while [ $# -ne 0 ]; do
@@ -31,6 +31,15 @@ ODB_LAUNCHER="${ODB_DIR}/bin/server.sh"
 ODB_LAUNCHER_SYML="${CI_DIR}/orientdb_current/bin/server.sh"
 
 echo "=== Initializing CI environment ==="
+
+if [ -d "/usr/lib/jvm/java-8-oracle/jre" ]; then
+    # Force maven on Travis to use JAVA 8
+    export JAVA_HOME="/usr/lib/jvm/java-8-oracle/jre"
+fi
+
+echo `java -version`
+echo `javac -version`
+echo `mvn -version`
 
 cd "$PARENT_DIR"
 

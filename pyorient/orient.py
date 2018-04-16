@@ -85,7 +85,6 @@ class OrientSocket(object):
         '''
         dlog("Trying to connect...")
         try:
-            self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self._socket.settimeout( SOCK_CONN_TIMEOUT )  # 30 secs of timeout
             self._socket.connect( (self.host, self.port) )
             _value = self._socket.recv( FIELD_SHORT['bytes'] )
@@ -253,7 +252,10 @@ class OrientDB(object):
         self._cluster_reverse_map = None
         self._connection = connection
         self._serialization_type = serialization_type
-        
+
+    def close(self):
+        self._connection.close()
+
     def __getattr__(self, item):
 
         # No special handling for private attributes/methods.
@@ -415,11 +417,7 @@ class OrientDB(object):
         self.nodes = nodes
 
         # store property id->property name, type map for binary serialization
-        
-        if self._serialization_type==OrientSerialization.Binary:
-            self._connection._props = {x['id']:[x['name'], type_map[x['type']]] for x in
-                        self.command("select from #0:1")[0].oRecordData['globalProperties']}
-        
+        self.update_properties()
         
         return self.clusters
 
@@ -432,8 +430,22 @@ class OrientDB(object):
         self.clusters = self.get_message("DbReloadMessage") \
             .prepare([]).send().fetch_response()
         self._reload_clusters()
+        self.update_properties()
         return self.clusters
 
+        
+    def update_properties(self):
+        '''
+        This method fetches the global Properties from the server. The properties are used
+        for deserializing based on propery index if using binary serialization. This method
+        should be called after any manual command that may result in modifications to the
+        properties table, for example, "Create property ... " or "Create class .." followed
+        by "Create vertex set ... "
+        '''
+        if self._serialization_type==OrientSerialization.Binary:
+            self._connection._props = {x['id']:[x['name'], type_map[x['type']]] for x in
+                        self.command("select from #0:1")[0].oRecordData['globalProperties']}
+        
     def shutdown(self, *args):
         return self.get_message("ShutdownMessage") \
             .prepare(args).send().fetch_response()
@@ -530,7 +542,7 @@ class OrientDB(object):
                 return message_instance
 
         except KeyError as e:
-            self._connection.close()
+            self.close()
             raise PyOrientBadMethodCallException(
                 "Unable to find command " + str(e), []
             )
