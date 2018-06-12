@@ -11,7 +11,11 @@ except ImportError:
 class Config(object):
     """Specifies how to connect to OrientDB server."""
     def __init__(self, host, port, user, cred, db_name=None, storage='memory'
+<<<<<<< HEAD
                  , initial_drop=False, serialization_type=OrientSerialization.Binary):
+=======
+                 , initial_drop=False, serialization_type=OrientSerialization.CSV, serialize_props=None):
+>>>>>>> upstream/develop
         """
         :param initial_drop: Useful for testing; signal that any existing
         database with this configuration should be dropped on connect.
@@ -24,6 +28,7 @@ class Config(object):
         self.storage = storage
         self.initial_drop = initial_drop
         self.serialization_type = serialization_type
+        self.serialize_props = serialize_props
         self.scripts = None
 
     @classmethod
